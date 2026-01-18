@@ -1,0 +1,314 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CalendarType {
+  INSTITUTIONAL
+  GROUP
+  PERSONAL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum ScheduleBlockKind {
+  CLASS
+  BREAK
+  ACTIVITY
+  OTHER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  fullName     String
+  email        String?   @unique
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  roles              UserRole[]
+  studentProfile     StudentProfile?
+  teacherProfile     TeacherProfile?
+  newsAuthored       News[]
+  adminPermissions   AdminPermissionAssignment[]
+  personalCalendars  Calendar[] @relation("PersonalCalendars")
+}
+
+model UserRole {
+  userId String
+  role   Role
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, role])
+  @@index([role])
+}
+
+model StudentProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  gradeLevel     Int
+  classroom      String
+  studentNumber  String
+  currentGroupId String?
+
+  user           User   @relation(fields: [userId], references: [id])
+  currentGroup   Group? @relation(fields: [currentGroupId], references: [id])
+
+  enrollments    Enrollment[]
+  grades         Grade[]
+  attendance     Attendance[]
+  calendars      Calendar[] @relation("StudentCalendars")
+}
+
+model TeacherProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  department    String?
+  phone         String?
+
+  user          User   @relation(fields: [userId], references: [id])
+  groupSubjects GroupSubject[]
+}
+
+model Group {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String?
+  gradeLevel   Int
+  groupNumber  Int
+  academicYear String
+
+  students     StudentProfile[]
+  enrollments  Enrollment[]
+  groupSubjects GroupSubject[]
+  calendars    Calendar[] @relation("GroupCalendars")
+
+  @@unique([gradeLevel, groupNumber, academicYear])
+}
+
+model AcademicPeriodType {
+  id       String  @id @default(cuid())
+  name     String
+  code     String? @unique
+  isActive Boolean @default(true)
+
+  periods AcademicPeriod[]
+}
+
+model AcademicPeriod {
+  id        String   @id @default(cuid())
+  name      String
+  typeId    String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  type        AcademicPeriodType @relation(fields: [typeId], references: [id])
+  enrollments Enrollment[]
+  grades      Grade[]
+}
+
+model Subject {
+  id       String   @id @default(cuid())
+  name     String
+  code     String?  @unique
+
+  groupSubjects GroupSubject[]
+}
+
+model GroupSubject {
+  id         String  @id @default(cuid())
+  groupId    String
+  subjectId  String
+  teacherId  String
+
+  group      Group          @relation(fields: [groupId], references: [id])
+  subject    Subject        @relation(fields: [subjectId], references: [id])
+  teacher    TeacherProfile @relation(fields: [teacherId], references: [id])
+
+  schedule   ScheduleEntry[]
+  grades     Grade[]
+  attendance Attendance[]
+
+  @@unique([groupId, subjectId, teacherId])
+}
+
+model ScheduleBlockType {
+  id              String            @id @default(cuid())
+  name            String
+  kind            ScheduleBlockKind @default(CLASS)
+  durationMinutes Int
+  isFixed         Boolean           @default(false)
+  isActive        Boolean           @default(true)
+
+  scheduleEntries ScheduleEntry[]
+}
+
+model ScheduleEntry {
+  id            String   @id @default(cuid())
+  blockTypeId   String
+  groupSubjectId String?
+  dayOfWeek     Int
+  startMinute   Int
+  endMinute     Int
+  room          String?
+
+  blockType     ScheduleBlockType @relation(fields: [blockTypeId], references: [id])
+  groupSubject  GroupSubject?     @relation(fields: [groupSubjectId], references: [id])
+
+  @@index([dayOfWeek])
+  @@index([blockTypeId])
+}
+
+model Enrollment {
+  id              String   @id @default(cuid())
+  studentId       String
+  groupId         String
+  periodId        String
+  createdAt       DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id])
+  group   Group          @relation(fields: [groupId], references: [id])
+  period  AcademicPeriod @relation(fields: [periodId], references: [id])
+
+  @@unique([studentId, groupId, periodId])
+  @@index([groupId])
+}
+
+model GradeScale {
+  id        String  @id @default(cuid())
+  name      String
+  minScore  Float   @default(0)
+  maxScore  Float
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  assessmentTypes AssessmentType[]
+}
+
+model AssessmentType {
+  id        String  @id @default(cuid())
+  name      String
+  scaleId   String
+  isActive  Boolean @default(true)
+
+  scale GradeScale @relation(fields: [scaleId], references: [id])
+  grades Grade[]
+}
+
+model Grade {
+  id               String   @id @default(cuid())
+  studentId        String
+  groupSubjectId   String
+  periodId         String
+  assessmentTypeId String
+  score            Float
+  recordedAt       DateTime @default(now())
+
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+  groupSubject   GroupSubject   @relation(fields: [groupSubjectId], references: [id])
+  period         AcademicPeriod @relation(fields: [periodId], references: [id])
+  assessmentType AssessmentType @relation(fields: [assessmentTypeId], references: [id])
+
+  @@index([studentId, periodId])
+}
+
+model Attendance {
+  id             String   @id @default(cuid())
+  studentId      String
+  groupSubjectId String
+  date           DateTime
+  status         AttendanceStatus
+  note           String?
+
+  student        StudentProfile @relation(fields: [studentId], references: [id])
+  groupSubject   GroupSubject   @relation(fields: [groupSubjectId], references: [id])
+
+  @@unique([studentId, groupSubjectId, date])
+  @@index([date])
+}
+
+model News {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  summary     String?
+  content     String
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String
+
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model Calendar {
+  id              String        @id @default(cuid())
+  type            CalendarType
+  title           String
+  groupId         String?
+  studentId       String?
+  ownerUserId     String?
+  createdAt       DateTime      @default(now())
+
+  group        Group?           @relation("GroupCalendars", fields: [groupId], references: [id])
+  student      StudentProfile?  @relation("StudentCalendars", fields: [studentId], references: [id])
+  owner        User?            @relation("PersonalCalendars", fields: [ownerUserId], references: [id])
+  events       CalendarEvent[]
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  calendarId  String
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+  allDay      Boolean  @default(false)
+
+  calendar Calendar @relation(fields: [calendarId], references: [id])
+
+  @@index([startAt])
+}
+
+model AdminPermission {
+  id          String @id @default(cuid())
+  key         String @unique
+  description String?
+
+  assignments AdminPermissionAssignment[]
+}
+
+model AdminPermissionAssignment {
+  userId       String
+  permissionId String
+
+  user       User            @relation(fields: [userId], references: [id])
+  permission AdminPermission @relation(fields: [permissionId], references: [id])
+
+  @@id([userId, permissionId])
+}
