@@ -15,8 +15,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Portal Educativo IPVCE",
-  description: "Portal educativo del IPVCE para estudiantes y personal.",
+  title: "CiberSoca",
+  description: "Portal educativo del IPVCE",
 };
 
 export default function RootLayout({
@@ -26,10 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${spaceGrotesk.variable} ${fraunces.variable} antialiased`}>
-        <div className="page-shell">
+      <body className={`${spaceGrotesk.variable} ${fraunces.variable} min-h-screen antialiased`}>
+        <div className="flex min-h-screen flex-col">
           <SiteHeader />
-          <main className="page-content">{children}</main>
+          <main className="flex-1">{children}</main>
           <SiteFooter />
         </div>
       </body>
