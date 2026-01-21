@@ -1,13 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import { Link, Separator } from "@heroui/react";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-white/70 px-6 py-10 text-sm text-muted dark:bg-black/60" id="info">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
+    <footer className="border-t border-border bg-white/70 px-1 py-10 text-sm text-muted dark:bg-black/60 sm:px-2" id="info">
+      <div className="mx-auto grid w-full max-w-none gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div className="flex gap-4">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#ff6b3d] to-[#2b6de9] shadow-lg" />
+          <Image
+            alt="CiberSoca"
+            className="-my-1 h-11.25 w-auto dark:invert sm:h-12.5"
+            height={280}
+            src="/brand/logo.svg"
+            width={900}
+          />
           <div className="space-y-2">
             <p className="text-base font-semibold text-foreground">IPVCE Portal</p>
             <p>
@@ -59,9 +66,9 @@ export function SiteFooter() {
 
       <Separator className="my-6" />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 text-xs">
-        <span>IPVCE (c) 2026</span>
-        <span>Portal Educativo - Version interna 0.1</span>
+      <div className="mx-auto flex w-full max-w-none flex-wrap items-center justify-between gap-3 px-1 text-xs sm:px-2">
+        <span>Copyright © 2026 IPVCE</span>
+        <span>CiberSoca - Version interna 0.0.1</span>
       </div>
     </footer>
   );

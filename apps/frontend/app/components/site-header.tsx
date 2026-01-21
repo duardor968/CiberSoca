@@ -1,41 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import Image from "next/image";
 import {
   Button,
+  ButtonGroup,
   Kbd,
   Label,
   Link,
   SearchField,
-  Switch,
 } from "@heroui/react";
+import { Display, Moon, Sun } from "@gravity-ui/icons";
 
 const REPO_URL = "https://github.com/duardor968/CiberSoca";
 
-const getInitialTheme = (): "light" | "dark" => {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem("theme");
-  if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+type ThemeMode = "light" | "dark" | "system";
+
+const THEME_KEY = "theme";
+const themeListeners = new Set<() => void>();
+
+const getStoredTheme = (): ThemeMode => {
+  if (typeof window === "undefined") return "system";
+  const stored = window.localStorage.getItem(THEME_KEY);
+  return stored === "dark" || stored === "light" || stored === "system"
+    ? stored
+    : "system";
 };
 
+const getServerTheme = () => "system";
+
+const subscribeTheme = (listener: () => void) => {
+  themeListeners.add(listener);
+  return () => themeListeners.delete(listener);
+};
+
+const setStoredTheme = (value: ThemeMode) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(THEME_KEY, value);
+  themeListeners.forEach((listener) => listener());
+};
+
+const themeOptions: Array<{
+  value: ThemeMode;
+  label: string;
+  Icon: typeof Sun;
+}> = [
+  { value: "light", label: "Tema claro", Icon: Sun },
+  { value: "dark", label: "Tema oscuro", Icon: Moon },
+  { value: "system", label: "Tema del sistema", Icon: Display },
+];
+
 export function SiteHeader() {
-  const [theme, setTheme] = useState<"light" | "dark">(getInitialTheme);
+  const themeMode = useSyncExternalStore(subscribeTheme, getStoredTheme, getServerTheme);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("theme", theme);
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const isDark =
+        themeMode === "dark" ||
+        (themeMode === "system" && media?.matches);
+      document.documentElement.classList.toggle("dark", Boolean(isDark));
+    };
+
+    applyTheme();
+    window.localStorage.setItem(THEME_KEY, themeMode);
+
+    if (themeMode === "system" && media?.addEventListener) {
+      media.addEventListener("change", applyTheme);
+      return () => media.removeEventListener("change", applyTheme);
     }
-  }, [theme]);
+    return;
+  }, [themeMode]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-white/70 backdrop-blur dark:bg-black/60">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+    <header className="sticky top-0 z-30 h-16 border-b border-border bg-white/70 backdrop-blur dark:bg-black/60">
+      <div className="mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-1 sm:px-2">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#ff6b3d] to-[#2b6de9] shadow-lg" />
+          <Image
+            alt="CiberSoca"
+            className="-my-1 h-11.25 w-auto dark:invert sm:h-12.5"
+            height={280}
+            priority
+            src="/brand/logo.svg"
+            width={900}
+          />
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted">IPVCE</p>
             <p className="text-lg font-semibold text-foreground">Portal Educativo</p>
@@ -55,14 +103,12 @@ export function SiteHeader() {
             <SearchField.Group className="h-10 rounded-full px-3">
               <SearchField.SearchIcon />
               <SearchField.Input
-                className="w-[140px] bg-transparent text-sm md:w-[200px]"
+                className="w-35 bg-transparent text-sm md:w-50"
                 placeholder="Buscar"
               />
-              <div className="hidden items-center gap-1 md:flex">
-                <Kbd>
-                  <Kbd.Abbr keyValue="ctrl" />
-                </Kbd>
-                <Kbd>
+              <div className="hidden md:flex">
+                <Kbd className="gap-1">
+                  <Kbd.Abbr keyValue="command" />
                   <Kbd.Content>K</Kbd.Content>
                 </Kbd>
               </div>
@@ -81,15 +127,20 @@ export function SiteHeader() {
             </svg>
           </Button>
 
-          <Switch
-            aria-label="Cambiar tema"
-            isSelected={theme === "dark"}
-            onChange={(selected) => setTheme(selected ? "dark" : "light")}
-          >
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-          </Switch>
+          <ButtonGroup size="sm" variant="secondary">
+            {themeOptions.map(({ value, label, Icon }) => (
+              <Button
+                key={value}
+                isIconOnly
+                aria-label={label}
+                aria-pressed={themeMode === value}
+                className={themeMode === value ? "bg-default text-foreground" : "text-muted"}
+                onPress={() => setStoredTheme(value)}
+              >
+                <Icon className="size-4" />
+              </Button>
+            ))}
+          </ButtonGroup>
 
           <Button>Acceso</Button>
         </div>
