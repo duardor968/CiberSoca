@@ -77,7 +77,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-1 sm:px-2">
         <div className="flex items-center gap-3">
           <Image
-            alt="CiberSoca"
+            alt="NEXA"
             className="-my-1 h-11.25 w-auto dark:invert sm:h-12.5"
             height={280}
             priority

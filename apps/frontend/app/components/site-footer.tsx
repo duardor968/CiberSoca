@@ -9,7 +9,7 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-none gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div className="flex gap-4">
           <Image
-            alt="CiberSoca"
+            alt="NEXA"
             className="-my-1 h-11.25 w-auto dark:invert sm:h-12.5"
             height={280}
             src="/brand/logo.svg"

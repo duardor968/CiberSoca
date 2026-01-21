@@ -15,7 +15,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "CiberSoca",
+  title: "NEXA",
   description: "Portal educativo del IPVCE",
 };
 
