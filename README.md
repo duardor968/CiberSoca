@@ -13,7 +13,7 @@ El portal debe:
 - **Usuarios autenticados:** estudiantes, profesores y administradores con acceso a datos privados.
 
 ## 3. Decisiones cerradas
-- **Stack:** Next.js + TailwindCSS v4 + HeroUI v3 (beta) + ECharts (frontend) y NestJS + Prisma + PostgreSQL (backend).
+- **Stack:** Next.js + TailwindCSS v4 + HeroUI v3 (beta) + ECharts (frontend) y NestJS + Prisma + PostgreSQL + GraphQL (backend).
 - **UI:** estilo moderno, limpio y coherente con HeroUI v3.
 - **Idioma:** solo espanol.
 - **Infraestructura:** sin decision de hosting/infra por ahora; se prioriza despliegue local/institucional.
@@ -34,6 +34,7 @@ Notas importantes:
 - Landing (`/`) con noticias destacadas, breve descripcion y accesos rapidos.
 - Noticias institucionales y calendario institucional en modo lectura.
 - Informacion general del centro.
+- Noticias en landing consumidas via GraphQL para consultas flexibles.
 
 ### 5.2 Estudiante
 - Perfil academico con datos basicos, notas, asistencia y escalafon.
@@ -76,6 +77,9 @@ Notas importantes:
 - `/calendar` Calendario institucional (lectura publica).
 - `/info` Informacion general (dinamica).
 - `/login` Acceso a usuarios.
+
+### 9.6 API
+- `/graphql` API GraphQL para consultas flexibles (por ahora noticias en landing).
 
 ### 9.2 Comunes autenticadas
 - `/dashboard` Resumen general con atajos.

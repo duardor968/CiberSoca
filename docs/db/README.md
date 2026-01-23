@@ -42,6 +42,9 @@ Definir la estructura logica de datos para el portal educativo. Este documento e
 - **Calendar**: calendario (institucional, grupo, personal)
 - **CalendarEvent**: eventos de calendario
 
+### 3.5 Acceso a datos
+- Las noticias se exponen al frontend via GraphQL (consultas flexibles por campos).
+
 ## 4. Relaciones clave
 - Un **User** puede tener multiples **UserRole**.
 - Un **User** puede tener **StudentProfile** y/o **TeacherProfile**.

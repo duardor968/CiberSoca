@@ -26,6 +26,7 @@ export function SiteHeader() {
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const updateAuthState = () => {
@@ -36,6 +37,7 @@ export function SiteHeader() {
     };
 
     updateAuthState();
+    setIsHydrated(true);
     window.addEventListener(AUTH_EVENT, updateAuthState);
     window.addEventListener("storage", updateAuthState);
 
@@ -120,7 +122,9 @@ export function SiteHeader() {
 
           <ThemeToggle />
 
-          {authState.isLoggedIn ? (
+          {!isHydrated ? (
+            <div className="h-10 w-10 rounded-full bg-default/40" aria-hidden="true" />
+          ) : authState.isLoggedIn ? (
             <Dropdown>
               <Dropdown.Trigger className="rounded-full">
                 <Avatar>
@@ -179,7 +183,7 @@ export function SiteHeader() {
               </Dropdown.Popover>
             </Dropdown>
           ) : (
-            <Button onPress={() => window.location.assign("/login")}>Acceso</Button>
+            <Button onPress={() => window.location.assign("/login")}>Iniciar sesión</Button>
           )}
         </div>
       </div>
