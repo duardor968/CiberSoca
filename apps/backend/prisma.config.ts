@@ -4,11 +4,11 @@ import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
   schema: path.join('prisma', 'schema.prisma'),
-  migrations: { path: path.join('prisma', 'migrations') },
+  migrations: {
+    path: path.join('prisma', 'migrations'),
+    seed: 'node ./prisma/seed.js',
+  },
   datasource: {
     url: env('DATABASE_URL'),
-  },
-  engine: {
-    type: 'classic',
   },
 });

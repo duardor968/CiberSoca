@@ -39,7 +39,7 @@ enum ScheduleBlockKind {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           Int       @id @default(autoincrement())
   username     String    @unique
   passwordHash String
   fullName     String
@@ -57,7 +57,7 @@ model User {
 }
 
 model UserRole {
-  userId String
+  userId Int
   role   Role
 
   user User @relation(fields: [userId], references: [id])
@@ -67,12 +67,12 @@ model UserRole {
 }
 
 model StudentProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
   gradeLevel     Int
   classroom      String
   studentNumber  String
-  currentGroupId String?
+  currentGroupId Int?
 
   user           User   @relation(fields: [userId], references: [id])
   currentGroup   Group? @relation(fields: [currentGroupId], references: [id])
@@ -84,8 +84,8 @@ model StudentProfile {
 }
 
 model TeacherProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
   department    String?
   phone         String?
 
@@ -94,7 +94,7 @@ model TeacherProfile {
 }
 
 model Group {
-  id           String   @id @default(cuid())
+  id           Int      @id @default(autoincrement())
   code         String   @unique
   name         String?
   gradeLevel   Int
@@ -110,7 +110,7 @@ model Group {
 }
 
 model AcademicPeriodType {
-  id       String  @id @default(cuid())
+  id       Int     @id @default(autoincrement())
   name     String
   code     String? @unique
   isActive Boolean @default(true)
@@ -119,9 +119,9 @@ model AcademicPeriodType {
 }
 
 model AcademicPeriod {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   name      String
-  typeId    String
+  typeId    Int
   startDate DateTime
   endDate   DateTime
   isActive  Boolean  @default(false)
@@ -132,7 +132,7 @@ model AcademicPeriod {
 }
 
 model Subject {
-  id       String   @id @default(cuid())
+  id       Int      @id @default(autoincrement())
   name     String
   code     String?  @unique
 
@@ -140,10 +140,10 @@ model Subject {
 }
 
 model GroupSubject {
-  id         String  @id @default(cuid())
-  groupId    String
-  subjectId  String
-  teacherId  String
+  id         Int     @id @default(autoincrement())
+  groupId    Int
+  subjectId  Int
+  teacherId  Int
 
   group      Group          @relation(fields: [groupId], references: [id])
   subject    Subject        @relation(fields: [subjectId], references: [id])
@@ -157,7 +157,7 @@ model GroupSubject {
 }
 
 model ScheduleBlockType {
-  id              String            @id @default(cuid())
+  id              Int               @id @default(autoincrement())
   name            String
   kind            ScheduleBlockKind @default(CLASS)
   durationMinutes Int
@@ -168,9 +168,9 @@ model ScheduleBlockType {
 }
 
 model ScheduleEntry {
-  id            String   @id @default(cuid())
-  blockTypeId   String
-  groupSubjectId String?
+  id            Int      @id @default(autoincrement())
+  blockTypeId   Int
+  groupSubjectId Int?
   dayOfWeek     Int
   startMinute   Int
   endMinute     Int
@@ -184,10 +184,10 @@ model ScheduleEntry {
 }
 
 model Enrollment {
-  id              String   @id @default(cuid())
-  studentId       String
-  groupId         String
-  periodId        String
+  id              Int      @id @default(autoincrement())
+  studentId       Int
+  groupId         Int
+  periodId        Int
   createdAt       DateTime @default(now())
 
   student StudentProfile @relation(fields: [studentId], references: [id])
@@ -199,7 +199,7 @@ model Enrollment {
 }
 
 model GradeScale {
-  id        String  @id @default(cuid())
+  id        Int     @id @default(autoincrement())
   name      String
   minScore  Float   @default(0)
   maxScore  Float
@@ -210,9 +210,9 @@ model GradeScale {
 }
 
 model AssessmentType {
-  id        String  @id @default(cuid())
+  id        Int     @id @default(autoincrement())
   name      String
-  scaleId   String
+  scaleId   Int
   isActive  Boolean @default(true)
 
   scale GradeScale @relation(fields: [scaleId], references: [id])
@@ -220,11 +220,11 @@ model AssessmentType {
 }
 
 model Grade {
-  id               String   @id @default(cuid())
-  studentId        String
-  groupSubjectId   String
-  periodId         String
-  assessmentTypeId String
+  id               Int      @id @default(autoincrement())
+  studentId        Int
+  groupSubjectId   Int
+  periodId         Int
+  assessmentTypeId Int
   score            Float
   recordedAt       DateTime @default(now())
 
@@ -237,9 +237,9 @@ model Grade {
 }
 
 model Attendance {
-  id             String   @id @default(cuid())
-  studentId      String
-  groupSubjectId String
+  id             Int      @id @default(autoincrement())
+  studentId      Int
+  groupSubjectId Int
   date           DateTime
   status         AttendanceStatus
   note           String?
@@ -252,7 +252,7 @@ model Attendance {
 }
 
 model News {
-  id          String    @id @default(cuid())
+  id          Int       @id @default(autoincrement())
   title       String
   slug        String    @unique
   summary     String?
@@ -261,18 +261,18 @@ model News {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  authorId    String
+  authorId    Int
 
   author User @relation(fields: [authorId], references: [id])
 }
 
 model Calendar {
-  id              String        @id @default(cuid())
+  id              Int           @id @default(autoincrement())
   type            CalendarType
   title           String
-  groupId         String?
-  studentId       String?
-  ownerUserId     String?
+  groupId         Int?
+  studentId       Int?
+  ownerUserId     Int?
   createdAt       DateTime      @default(now())
 
   group        Group?           @relation("GroupCalendars", fields: [groupId], references: [id])
@@ -282,8 +282,8 @@ model Calendar {
 }
 
 model CalendarEvent {
-  id          String   @id @default(cuid())
-  calendarId  String
+  id          Int      @id @default(autoincrement())
+  calendarId  Int
   title       String
   description String?
   startAt     DateTime
@@ -296,7 +296,7 @@ model CalendarEvent {
 }
 
 model AdminPermission {
-  id          String @id @default(cuid())
+  id          Int    @id @default(autoincrement())
   key         String @unique
   description String?
 
@@ -304,8 +304,8 @@ model AdminPermission {
 }
 
 model AdminPermissionAssignment {
-  userId       String
-  permissionId String
+  userId       Int
+  permissionId Int
 
   user       User            @relation(fields: [userId], references: [id])
   permission AdminPermission @relation(fields: [permissionId], references: [id])

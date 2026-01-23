@@ -4,7 +4,7 @@
 Definir la estructura logica de datos para el portal educativo. Este documento es base de trabajo y puede ajustarse durante la implementacion.
 
 ## 2. Convenciones
-- IDs: `cuid()`
+- IDs: enteros autoincrementables
 - Fechas: `DateTime` en UTC
 - Soft delete: no se aplica por ahora (se evalua luego)
 - Roles: un usuario puede tener varios roles (ej. ADMIN + TEACHER)

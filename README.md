@@ -64,7 +64,7 @@ Notas importantes:
 
 ## 8. Autenticacion y seguridad
 - Inicio de sesion con usuario/contrasena.
-- Sesiones via JWT o cookies HTTP-only (a definir en implementacion).
+- Sesiones via JWT almacenado en cookie HTTP-only.
 - Contrasenas con hashing seguro (bcrypt o equivalente).
 - Datos academicos solo visibles para usuarios autenticados y autorizados.
 

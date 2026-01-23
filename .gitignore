@@ -2,6 +2,7 @@
 node_modules/
 
 /tmp
+apps/backend/prisma/migrations
 
 # Build output
 apps/backend/dist/

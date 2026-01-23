@@ -1,80 +1,71 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
+  AlertDialog,
+  Avatar,
   Button,
-  ButtonGroup,
+  Dropdown,
   Kbd,
   Label,
   Link,
   SearchField,
 } from "@heroui/react";
-import { Display, Moon, Sun } from "@gravity-ui/icons";
+import { ArrowRightFromSquare, Gear, Person } from "@gravity-ui/icons";
+import { clearAuthSession, getAuthUser, isLoggedIn, AUTH_EVENT } from "../lib/auth";
+import { ThemeToggle } from "./theme-toggle";
 
 const REPO_URL = "https://github.com/duardor968/CiberSoca";
 
-type ThemeMode = "light" | "dark" | "system";
-
-const THEME_KEY = "theme";
-const themeListeners = new Set<() => void>();
-
-const getStoredTheme = (): ThemeMode => {
-  if (typeof window === "undefined") return "system";
-  const stored = window.localStorage.getItem(THEME_KEY);
-  return stored === "dark" || stored === "light" || stored === "system"
-    ? stored
-    : "system";
-};
-
-const getServerTheme = () => "system";
-
-const subscribeTheme = (listener: () => void) => {
-  themeListeners.add(listener);
-  return () => themeListeners.delete(listener);
-};
-
-const setStoredTheme = (value: ThemeMode) => {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(THEME_KEY, value);
-  themeListeners.forEach((listener) => listener());
-};
-
-const themeOptions: Array<{
-  value: ThemeMode;
-  label: string;
-  Icon: typeof Sun;
-}> = [
-  { value: "light", label: "Tema claro", Icon: Sun },
-  { value: "dark", label: "Tema oscuro", Icon: Moon },
-  { value: "system", label: "Tema del sistema", Icon: Display },
-];
-
 export function SiteHeader() {
-  const themeMode = useSyncExternalStore(subscribeTheme, getStoredTheme, getServerTheme);
+  const [authState, setAuthState] = useState(() => ({
+    isLoggedIn: false,
+    username: null as string | null,
+  }));
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   useEffect(() => {
-    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const applyTheme = () => {
-      const isDark =
-        themeMode === "dark" ||
-        (themeMode === "system" && media?.matches);
-      document.documentElement.classList.toggle("dark", Boolean(isDark));
+    const updateAuthState = () => {
+      setAuthState({
+        isLoggedIn: isLoggedIn(),
+        username: getAuthUser(),
+      });
     };
 
-    applyTheme();
-    window.localStorage.setItem(THEME_KEY, themeMode);
+    updateAuthState();
+    window.addEventListener(AUTH_EVENT, updateAuthState);
+    window.addEventListener("storage", updateAuthState);
 
-    if (themeMode === "system" && media?.addEventListener) {
-      media.addEventListener("change", applyTheme);
-      return () => media.removeEventListener("change", applyTheme);
+    return () => {
+      window.removeEventListener(AUTH_EVENT, updateAuthState);
+      window.removeEventListener("storage", updateAuthState);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    setLogoutError(null);
+
+    try {
+      await fetch("/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      setLogoutError("No se pudo cerrar la sesión. Intenta nuevamente.");
+    } finally {
+      clearAuthSession();
+      setIsLoggingOut(false);
+      window.location.assign("/");
     }
-    return;
-  }, [themeMode]);
+  };
 
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-white/70 backdrop-blur dark:bg-black/60">
-      <div className="mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-1 sm:px-2">
+      <div className="mx-auto flex h-full w-full max-w-none flex-nowrap items-center justify-between gap-4 px-4 sm:px-5">
         <div className="flex items-center gap-3">
           <Image
             alt="NEXA"
@@ -127,24 +118,103 @@ export function SiteHeader() {
             </svg>
           </Button>
 
-          <ButtonGroup size="sm" variant="secondary">
-            {themeOptions.map(({ value, label, Icon }) => (
-              <Button
-                key={value}
-                isIconOnly
-                aria-label={label}
-                aria-pressed={themeMode === value}
-                className={themeMode === value ? "bg-default text-foreground" : "text-muted"}
-                onPress={() => setStoredTheme(value)}
-              >
-                <Icon className="size-4" />
-              </Button>
-            ))}
-          </ButtonGroup>
+          <ThemeToggle />
 
-          <Button>Acceso</Button>
+          {authState.isLoggedIn ? (
+            <Dropdown>
+              <Dropdown.Trigger className="rounded-full">
+                <Avatar>
+                  <Avatar.Image
+                    alt={authState.username ?? "Usuario"}
+                    src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/orange.jpg"
+                  />
+                  <Avatar.Fallback delayMs={600}>
+                    {(authState.username ?? "U").slice(0, 2).toUpperCase()}
+                  </Avatar.Fallback>
+                </Avatar>
+              </Dropdown.Trigger>
+              <Dropdown.Popover className="min-w-60 -translate-x-2">
+                <div className="px-3 pt-3 pb-1">
+                  <div className="flex items-center gap-2">
+                    <Avatar size="sm">
+                      <Avatar.Image
+                        alt={authState.username ?? "Usuario"}
+                        src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/orange.jpg"
+                      />
+                      <Avatar.Fallback delayMs={600}>
+                        {(authState.username ?? "U").slice(0, 2).toUpperCase()}
+                      </Avatar.Fallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-0">
+                      <p className="text-sm font-medium leading-5">Sesión activa</p>
+                      <p className="text-xs leading-none text-muted">
+                        {authState.username ?? "usuario@ipvc.edu"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Dropdown.Menu onAction={(key) => key === "logout" && setIsLogoutOpen(true)}>
+                  <Dropdown.Item id="dashboard" textValue="Dashboard">
+                    <Label>Panel</Label>
+                  </Dropdown.Item>
+                  <Dropdown.Item id="profile" textValue="Profile">
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label>Perfil</Label>
+                      <Person className="size-3.5 text-muted" />
+                    </div>
+                  </Dropdown.Item>
+                  <Dropdown.Item id="settings" textValue="Settings">
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label>Configuración</Label>
+                      <Gear className="size-3.5 text-muted" />
+                    </div>
+                  </Dropdown.Item>
+                  <Dropdown.Item id="logout" textValue="Logout" variant="danger">
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label>Cerrar sesión</Label>
+                      <ArrowRightFromSquare className="size-3.5 text-danger" />
+                    </div>
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+          ) : (
+            <Button onPress={() => window.location.assign("/login")}>Acceso</Button>
+          )}
         </div>
       </div>
+      <AlertDialog>
+        <AlertDialog.Backdrop isOpen={isLogoutOpen} onOpenChange={setIsLogoutOpen}>
+          <AlertDialog.Container>
+            <AlertDialog.Dialog className="sm:max-w-[400px]">
+              <AlertDialog.CloseTrigger />
+              <AlertDialog.Header>
+                <AlertDialog.Icon status="danger" />
+                <AlertDialog.Heading>¿Cerrar sesión?</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                <p>Vas a salir del portal y deberás iniciar sesión de nuevo.</p>
+                {logoutError ? (
+                  <p className="mt-2 text-sm text-danger">{logoutError}</p>
+                ) : null}
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <Button slot="close" variant="tertiary">
+                  Cancelar
+                </Button>
+                <Button
+                  slot="close"
+                  variant="danger"
+                  isLoading={isLoggingOut}
+                  onPress={handleLogout}
+                >
+                  Cerrar sesión
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
+      </AlertDialog>
     </header>
   );
 }
